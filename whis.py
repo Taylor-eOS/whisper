@@ -3,12 +3,12 @@ import sys
 import os
 
 def transcribe_audio(input_path: str, model_size: str):
-    # Load the specified Whisper model or default to "base"
+    # Load the specified Whisper model or default to "medium"
     try:
         model = whisper.load_model(model_size)
     except ValueError:
-        print(f"Defaulting to 'base' model.")
-        model = whisper.load_model("base")
+        print(f"Defaulting to 'medium' model.")
+        model = whisper.load_model("medium") #tiny,base,small,medium,large,large-v2
     
     files_processed = 0
     # Filter for audio files only
@@ -45,7 +45,7 @@ def transcribe_audio(input_path: str, model_size: str):
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         input_path = sys.argv[1]
-        model_size = "base"
+        model_size = "medium"
     elif len(sys.argv) == 3:
         input_path = sys.argv[1]
         model_size = sys.argv[2]
