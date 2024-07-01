@@ -8,14 +8,14 @@ fi
 
 # Define the download path and template with timestamp
 timestamp=$(date +%s)
-download_path="$HOME/Downloads/%(title)s_$timestamp.%(ext)s"
+download_path="$HOME/%(title)s_$timestamp.%(ext)s"
 
 # Download the video with the specified format and output template
 youtube_url="$1"
 yt-dlp -f 251 -o "$download_path" "$youtube_url"
 
 # Find the downloaded file
-filename=$(find "$HOME/Downloads" -type f -name "*_$timestamp.*")
+filename=$(find "$HOME" -type f -name "*_$timestamp.*")
 
 # Check if the file exists
 if [ ! -f "$filename" ]; then
