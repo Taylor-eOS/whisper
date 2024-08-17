@@ -7,8 +7,8 @@ def transcribe_audio(input_path: str, model_size: str):
     try:
         model = whisper.load_model(model_size)
     except ValueError:
-        print(f"Defaulting to 'small' model.")
-        model = whisper.load_model("small") #tiny,base,small,medium,large,large-v2
+        print(f"Defaulting to 'medium' model.")
+        model = whisper.load_model("medium") #tiny,base,small,medium,large,large-v2
     
     files_processed = 0
     # Filter for audio files only
@@ -42,10 +42,11 @@ def transcribe_audio(input_path: str, model_size: str):
     
         files_processed += 1
 
+#The script defaults to medium, but if you add a parameter with a model size it will use that
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         input_path = sys.argv[1]
-        model_size = "small"
+        model_size = "medium"
     elif len(sys.argv) == 3:
         input_path = sys.argv[1]
         model_size = sys.argv[2]
