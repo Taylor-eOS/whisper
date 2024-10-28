@@ -1,4 +1,4 @@
-This script automates the process of transcribing audio files into text. It uses OpenAI's Whisper model to process and convert each audio file into a text transcription, and is designed to handle directories filled with various audio formats. For each audio file, the script generates a corresponding text file with the transcription, making it a powerful tool for anyone needing accurate, automated transcription of spoken content without manual intervention. By default, the script utilizes a medium-sized Whisper model to balance transcription speed with accuracy, though you can specify a different model size depending on your needs.\
+This script transcribes audio files into text. It uses OpenAI's Whisper model, which will run on your own computer and does not require any online connection once the model is downloaded. For each audio file, the script generates a corresponding text file with the transcription, making it a powerful tool for anyone needing accurate, automated transcription of spoken content without manual intervention. By default, the script utilizes a medium-sized Whisper model to balance transcription speed with accuracy, though you can specify a different model size depending on your needs.\
 To run this code on a computer, you need to set up a Python environment and install the necessary dependencies (like OpenAI's Whisper model). Here’s a step-by-step guide for both Linux and Windows users who are unfamiliar with Python.
 
 ### Installing Python
@@ -65,6 +65,8 @@ For setting up the environment to run the script with Whisper, follow these step
    ```
    - Replace `<directory_path>` with the path to the directory containing your audio files or the filename of the file you want to transcribe.
    - `[model_size]` is optional and defines the size of the Whisper model to use. Options include `tiny`, `base`, `small`, `medium`, `large`, or `large-v2`. The default is `medium` if no size is specified, which is a good compromize between how long it will take and accuracy.
+
+Each time a different model size is used for the first time, it will be downloaded and then be available for subsequent uses. 
 
 ### How the Script Works
 
