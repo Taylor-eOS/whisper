@@ -1,3 +1,4 @@
+This script automates the process of transcribing audio files into text. It uses OpenAI's Whisper model to process and convert each audio file into a text transcription, and is designed to handle directories filled with various audio formats. For each audio file, the script generates a corresponding text file with the transcription, making it a powerful tool for anyone needing accurate, automated transcription of spoken content without manual intervention. By default, the script utilizes a medium-sized Whisper model to balance transcription speed with accuracy, though you can specify a different model size depending on your needs.\
 To run this code on a computer, you need to set up a Python environment and install the necessary dependencies (like OpenAI's Whisper model). Here’s a step-by-step guide for both Linux and Windows users who are unfamiliar with Python.
 
 ### Installing Python
