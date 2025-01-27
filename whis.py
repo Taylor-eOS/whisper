@@ -2,13 +2,15 @@ import whisper
 import sys
 import os
 
+model_size = "large"
+
 def transcribe_audio(input_path: str, model_size: str):
     # Load the specified Whisper model or default to "small"
     try:
         model = whisper.load_model(model_size)
     except ValueError:
-        print(f"Defaulting to 'medium' model.")
-        model = whisper.load_model("medium") #tiny,base,small,medium,large,large-v2
+        print(f"Defaulting to '{model_size}' model.")
+        model = whisper.load_model(model_size) #tiny,base,small,medium,large,large-v2 #large is the first one that does multilingual by default
     
     files_processed = 0
     # Filter for audio files only
@@ -42,11 +44,11 @@ def transcribe_audio(input_path: str, model_size: str):
     
         files_processed += 1
 
-#The script defaults to medium, but if you add a parameter with a model size it will use that
+#The script defaults to model_size, but if you add a parameter with a model size it will use that
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         input_path = sys.argv[1]
-        model_size = "medium"
+        model_size = model_size
     elif len(sys.argv) == 3:
         input_path = sys.argv[1]
         model_size = sys.argv[2]
@@ -68,3 +70,4 @@ if __name__ == "__main__":
         print(f"Done! Transcription saved to {output_text_path}")
     else:
         print(f"The provided path '{input_path}' is neither a file nor a directory.")
+
