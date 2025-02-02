@@ -32,7 +32,7 @@ def transcribe_audio(input_path: str, model_size: str):
 
         # Generate output text file path
         base_name = os.path.splitext(file_path)[0]
-        output_text_path = f"{base_name}_transcript.txt"
+        output_text_path = f"{base_name}.txt"
 
         # Save the transcription to a file
         try:
