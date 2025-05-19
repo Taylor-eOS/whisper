@@ -1,73 +1,70 @@
-import whisper
-import sys
 import os
+import sys
+import argparse
+import whisper
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-model_size = "large"
+def find_audio_files(path):
+    exts = ('.wav', '.m4a', '.mp3', '.webm')
+    return [os.path.join(path, f) for f in os.listdir(path) if f.lower().endswith(exts)]
 
-def transcribe_audio(input_path: str, model_size: str):
-    # Load the specified Whisper model or default to "small"
-    try:
-        model = whisper.load_model(model_size)
-    except ValueError:
-        print(f"Defaulting to '{model_size}' model.")
-        model = whisper.load_model(model_size) #tiny,base,small,medium,large,large-v2 #large is the first one that does multilingual by default
-    
-    files_processed = 0
-    # Filter for audio files only
-    audio_files = [f for f in os.listdir(input_path) if f.endswith(('.wav', '.m4a', '.mp3', '.webm'))]
-    total_files = len(audio_files)
+def transcribe_file(model, file_path):
+    result = model.transcribe(file_path)
+    base = os.path.splitext(file_path)[0]
+    out = f"{base}.txt"
+    with open(out, 'w') as fp:
+        fp.write(result['text'])
+    return file_path, out
 
-    if total_files == 0:
-        print("No audio files found in the specified directory.")
+def process_directory(path, model, max_workers):
+    files = find_audio_files(path)
+    if not files:
+        print("no audio files found")
         return
-
-    # Process each file in the directory
-    for filename in audio_files:
-        file_path = os.path.join(input_path, filename)
-        print(f"Processing {filename}... ({files_processed + 1}/{total_files})")
-        
-        # Transcribe the audio file
-        result = model.transcribe(file_path)
-        transcription = result['text']
-
-        # Generate output text file path
-        base_name = os.path.splitext(file_path)[0]
-        output_text_path = f"{base_name}.txt"
-
-        # Save the transcription to a file
-        try:
-            with open(output_text_path, 'w') as text_file:
-                text_file.write(transcription)
-            print(f"Done! Transcription saved to {output_text_path}")
-        except IOError as e:
-            print(f"Failed to write transcription: {e}")
-    
-        files_processed += 1
-
-#The script defaults to model_size, but if you add a parameter with a model size it will use that
-if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        input_path = sys.argv[1]
-        model_size = model_size
-    elif len(sys.argv) == 3:
-        input_path = sys.argv[1]
-        model_size = sys.argv[2]
+    if max_workers == 1:
+        for i, file in enumerate(files, 1):
+            try:
+                _, out = transcribe_file(model, file)
+                print(f"[{i}/{len(files)}] {os.path.basename(file)} → {os.path.basename(out)}")
+            except Exception as e:
+                print(f"failed {os.path.basename(file)}: {e}")
     else:
-        print("Usage: python whis.py <directory_path> [model_size]")
+        with ThreadPoolExecutor(max_workers=max_workers) as exe:
+            futures = {exe.submit(transcribe_file, model, f): f for f in files}
+            for i, fut in enumerate(as_completed(futures), 1):
+                src = futures[fut]
+                try:
+                    _, out = fut.result()
+                    print(f"[{i}/{len(futures)}] {os.path.basename(src)} → {os.path.basename(out)}")
+                except Exception as e:
+                    print(f"failed {os.path.basename(src)}: {e}")
+
+def process_file(path, model):
+    src, out = transcribe_file(model, path)
+    print(f"{os.path.basename(src)} → {os.path.basename(out)}")
+
+def load_model(size):
+    try:
+        return whisper.load_model(size)
+    except ValueError:
+        print(f"Could not load model '{size}', defaulting to large")
+        return whisper.load_model("large")
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("path", help="file or directory")
+    p.add_argument("--model", default="large", help="whisper model size")
+    p.add_argument("--workers", type=int, default=1, help="max parallel tasks")
+    args = p.parse_args()
+    if not os.path.exists(args.path):
+        print(f"path not found: {args.path}")
         sys.exit(1)
-
-    # Check if the input path is a directory
-    if os.path.isdir(input_path):
-        transcribe_audio(input_path, model_size)
-    elif os.path.isfile(input_path):
-        # Process single file
-        model = whisper.load_model(model_size)
-        result = model.transcribe(input_path)
-        transcription = result['text']
-        output_text_path = f"{os.path.splitext(input_path)[0]}_transcript.txt"
-        with open(output_text_path, 'w') as text_file:
-            text_file.write(transcription)
-        print(f"Done! Transcription saved to {output_text_path}")
+    model = load_model(args.model)
+    if os.path.isdir(args.path):
+        process_directory(args.path, model, args.workers)
     else:
-        print(f"The provided path '{input_path}' is neither a file nor a directory.")
+        process_file(args.path, model)
+
+if __name__ == "__main__":
+    main()
 
