@@ -60,7 +60,15 @@ def merge_txt_files(folder):
     _write_merged(output_path, joined_new)
 
 def main():
-    folder = sys.argv[1] if len(sys.argv) > 1 else '.'
+    if len(sys.argv) > 1:
+        folder = sys.argv[1]
+    else:
+        try:
+            folder = input('Folder (press Enter for "."): ')
+        except EOFError:
+            folder = ''
+        except KeyboardInterrupt:
+            raise SystemExit
     merge_txt_files(folder)
 
 if __name__ == '__main__':

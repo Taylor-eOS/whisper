@@ -51,19 +51,19 @@ def load_model(size):
         return whisper.load_model("large")
 
 def main():
+    path = input("Enter file or directory path: ").strip()
     p = argparse.ArgumentParser()
-    p.add_argument("path", help="file or directory")
     p.add_argument("--model", default="large", help="whisper model size")
     p.add_argument("--workers", type=int, default=1, help="max parallel tasks")
     args = p.parse_args()
-    if not os.path.exists(args.path):
-        print(f"path not found: {args.path}")
+    if not os.path.exists(path):
+        print(f"path not found: {path}")
         sys.exit(1)
     model = load_model(args.model)
-    if os.path.isdir(args.path):
-        process_directory(args.path, model, args.workers)
+    if os.path.isdir(path):
+        process_directory(path, model, args.workers)
     else:
-        process_file(args.path, model)
+        process_file(path, model)
 
 if __name__ == "__main__":
     main()
