@@ -56,7 +56,7 @@ def merge_txt_files(folder):
             new_blocks.append(content)
     if not new_blocks:
         return
-    joined_new = '\n\n-----\n\n'.join(new_blocks)
+    joined_new = '\n\n---\n\n'.join(new_blocks)
     _write_merged(output_path, joined_new)
 
 def main():
@@ -64,12 +64,13 @@ def main():
         folder = sys.argv[1]
     else:
         try:
-            folder = input('Folder (press Enter for "."): ')
+            folder = input('Folder (press Enter for same folder): ')
         except EOFError:
             folder = ''
         except KeyboardInterrupt:
             raise SystemExit
     merge_txt_files(folder)
+    print("Finished process")
 
 if __name__ == '__main__':
     main()
