@@ -2,6 +2,8 @@ import os
 import re
 import sys
 
+INCLUDE_FILENAMES = len(sys.argv) > 1
+
 def _natural_sort_key(s):
     parts = re.split(r'(\d+)', s)
     return [int(p) if p.isdigit() else p.lower() for p in parts]
@@ -23,55 +25,44 @@ def _read_and_clean(file_path):
     content = content.lstrip().rstrip('\n')
     return content if content else None
 
-def _write_merged(output_path, joined_new):
-    if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-        with open(output_path, 'r', encoding='utf-8') as f:
-            prev = f.read()
-        prev = prev.rstrip('\n')
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(prev)
-        with open(output_path, 'a', encoding='utf-8') as f:
-            f.write('\n\n-----\n\n')
-            f.write(joined_new)
-            f.write('\n')
-    else:
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(joined_new)
-            f.write('\n')
-
-def merge_txt_files(folder):
-    folder = folder.lstrip() if folder else '.'
-    abs_folder = os.path.abspath(folder)
-    if not os.path.isdir(abs_folder):
-        raise SystemExit(f'Not a directory: {folder}')
-    folder_name = os.path.basename(abs_folder.rstrip(os.sep)) or 'current'
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(script_dir, f'{folder_name}_merged.txt')
+def merge_folder(abs_folder, output_path):
     txt_files = _list_txt_files(abs_folder, output_path)
-    new_blocks = []
+    entries = []
     for filename in txt_files:
         file_path = os.path.join(abs_folder, filename)
         content = _read_and_clean(file_path)
-        if content:
-            new_blocks.append(content)
-    if not new_blocks:
+        if content is None:
+            continue
+        entries.append((filename, content))
+    return entries
+
+def write_merged(output_path, entries):
+    if not entries:
         return
-    joined_new = '\n\n---\n\n'.join(new_blocks)
-    _write_merged(output_path, joined_new)
+    if INCLUDE_FILENAMES:
+        blocks = [f'---{filename}\n\n{content}' for filename, content in entries]
+    else:
+        blocks = [content for filename, content in entries]
+    joined_new = '\n\n'.join(blocks)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(joined_new)
+        f.write('\n')
 
 def main():
-    if len(sys.argv) > 1:
-        folder = sys.argv[1]
+    target = input('Folder to merge (same): ') or "."
+    abs_folder = os.path.abspath(target.strip())
+    if not os.path.isdir(abs_folder):
+        raise SystemExit(f'Not a directory: {target}')
+    folder_name = os.path.basename(abs_folder.rstrip(os.sep)) or 'current'
+    output_name = f'{folder_name}_merged.txt'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_dir, output_name)
+    entries = merge_folder(abs_folder, output_path)
+    write_merged(output_path, entries)
+    if entries:
+        print(f'Wrote {output_path}')
     else:
-        try:
-            folder = input('Folder (press Enter for same folder): ')
-        except EOFError:
-            folder = ''
-        except KeyboardInterrupt:
-            raise SystemExit
-    merge_txt_files(folder)
-    print("Finished process")
+        print('No content to merge')
 
 if __name__ == '__main__':
     main()
-
