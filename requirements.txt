@@ -1,1 +1,4 @@
 openai-whisper
+faster_whisper
+pywhispercpp
+huggingface_hub

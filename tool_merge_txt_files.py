@@ -49,7 +49,7 @@ def write_merged(output_path, entries):
         f.write('\n')
 
 def main():
-    target = input('Folder to merge (same): ') or "."
+    target = input('Folder to merge (this folder): ') or "."
     abs_folder = os.path.abspath(target.strip())
     if not os.path.isdir(abs_folder):
         raise SystemExit(f'Not a directory: {target}')

@@ -1,21 +1,25 @@
 import os
 import sys
-import argparse
-import whisper
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pywhispercpp.model import Model
 
-DEFAULT_MODEL = "turbo"
+MODEL_NAME = "large-v3-turbo-q5_0"
+DEFAULT_WORKERS = 1
+AUDIO_EXTS = ('.wav', '.m4a', '.mp3', '.webm')
 
 def find_audio_files(path):
-    exts = ('.wav', '.m4a', '.mp3', '.webm')
-    return [os.path.join(path, f) for f in os.listdir(path) if f.lower().endswith(exts)]
+    return [os.path.join(path, f) for f in os.listdir(path) if f.lower().endswith(AUDIO_EXTS)]
+
+def load_model():
+    return Model(MODEL_NAME, print_realtime=False, print_progress=False)
 
 def transcribe_file(model, file_path):
-    result = model.transcribe(file_path)
+    segments = model.transcribe(file_path)
+    text = "\n".join(segment.text.strip() for segment in segments)
     base = os.path.splitext(file_path)[0]
     out = f"{base}.txt"
     with open(out, 'w') as fp:
-        fp.write(result['text'])
+        fp.write(text)
     return file_path, out
 
 def process_directory(path, model, max_workers):
@@ -45,25 +49,14 @@ def process_file(path, model):
     src, out = transcribe_file(model, path)
     print(f"{os.path.basename(src)} → {os.path.basename(out)}")
 
-def load_model(size):
-    try:
-        return whisper.load_model(size)
-    except (ValueError, RuntimeError):
-        print(f"Could not load model '{size}', defaulting to {DEFAULT_MODEL}")
-        return whisper.load_model(DEFAULT_MODEL)
-
 def main():
     path = input("Enter file or directory path: ").strip()
-    p = argparse.ArgumentParser()
-    p.add_argument("--model", default=DEFAULT_MODEL, help="whisper model size")
-    p.add_argument("--workers", type=int, default=1, help="max parallel tasks")
-    args = p.parse_args()
     if not os.path.exists(path):
         print(f"path not found: {path}")
         sys.exit(1)
-    model = load_model(args.model)
+    model = load_model()
     if os.path.isdir(path):
-        process_directory(path, model, args.workers)
+        process_directory(path, model, DEFAULT_WORKERS)
     else:
         process_file(path, model)
 
